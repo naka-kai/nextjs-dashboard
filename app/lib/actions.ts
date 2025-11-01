@@ -8,5 +8,5 @@ export async function createInvoice(formData: FormData) {
   };
 
   // テストしてみましょう
-  console.log(rawFormData);
+  console.log(typeof rawFormData.amount);
 }
