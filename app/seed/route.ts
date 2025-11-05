@@ -21,7 +21,7 @@ async function seedUsers() {
       return sql`
         INSERT INTO users (id, name, email, password)
         VALUES (${user.id}, ${user.name}, ${user.email}, ${hashedPassword})
-        ON CONFLICT (id) DO NOTHING;
+        ON CONFLICT (email) DO NOTHING;
       `;
     }),
   );
@@ -47,7 +47,7 @@ async function seedInvoices() {
       (invoice) => sql`
         INSERT INTO invoices (customer_id, amount, status, date)
         VALUES (${invoice.customer_id}, ${invoice.amount}, ${invoice.status}, ${invoice.date})
-        ON CONFLICT (id) DO NOTHING;
+        ON CONFLICT DO NOTHING;
       `,
     ),
   );
@@ -103,15 +103,17 @@ async function seedRevenue() {
 
 export async function GET() {
   try {
-    const result = await sql.begin((sql) => [
-      seedUsers(),
-      seedCustomers(),
-      seedInvoices(),
-      seedRevenue(),
+    await sql.begin(async () => [
+      await seedUsers(),
+      await seedCustomers(),
+      await seedInvoices(),
+      await seedRevenue(),
     ]);
 
     return Response.json({ message: 'Database seeded successfully' });
   } catch (error) {
     return Response.json({ error }, { status: 500 });
+  } finally {
+    await sql.end({ timeout: 1 });
   }
 }
